@@ -1,0 +1,74 @@
+---
+# Install mongodb
+
+## Ubuntu
+
+- name: Import MongoDB public key
+  command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+  tags: ['mongodb']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Copy MongoDB list file
+  copy:
+    src: mongodb-org-3.4.list
+    dest: /etc/apt/sources.list.d/mongodb-org-3.4.list
+    mode: 0644
+  tags: ['mongodb']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install MongoDB
+  apt: 
+    name: mongodb-org
+    update_cache: yes
+    state: latest
+  tags: ['mongodb']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Copy mongo.conf
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+  tags: ['mongodb']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Enable MongoDB service
+  systemd:
+    name: mongod
+    enabled: yes
+    state: restarted
+  tags: ['mongodb']
+  when: ansible_distribution == 'Ubuntu'
+  
+## Mongod requires this
+
+- stat: path=/sys/kernel/mm/transparent_hugepage/enabled
+  register: transparent_hugepage_stat
+  tags: ['mongodb']
+  
+- block:
+    - name: disable kernel.mm.transparent_hugepage
+      lineinfile: dest=/etc/rc.local line="echo never > /sys/kernel/mm/transparent_hugepage/enabled" insertbefore="exit 0"
+
+    - name: inject kernel.mm.transparent_hugepage
+      shell: "echo never > /sys/kernel/mm/transparent_hugepage/enabled && touch {{ansible_env.HOME}}/.kernel.mm.transparent_hugepage.never"
+      args:
+        creates: "{{ansible_env.HOME}}/.kernel.mm.transparent_hugepage.never"
+  tags: ['mongodb']
+  when: transparent_hugepage_stat.stat.exists == true
+ 
+
+- stat: path=/sys/kernel/mm/transparent_hugepage/defrag
+  register: transparent_hugepage_stat_defrag
+  tags: ['mongodb']
+  
+- block:
+    - name: disable kernel.mm.transparent_hugepage
+      lineinfile: dest=/etc/rc.local line="echo never > /sys/kernel/mm/transparent_hugepage/defrag" insertbefore="exit 0"
+
+    - name: inject kernel.mm.transparent_hugepage
+      shell: "echo never > /sys/kernel/mm/transparent_hugepage/defrag && touch {{ansible_env.HOME}}/.kernel.mm.transparent_hugepage_defrag.never"
+      args:
+        creates: "{{ansible_env.HOME}}/.kernel.mm.transparent_hugepage_defrag.never"
+  tags: ['mongodb']
+  when: transparent_hugepage_stat_defrag.stat.exists == true
+ 

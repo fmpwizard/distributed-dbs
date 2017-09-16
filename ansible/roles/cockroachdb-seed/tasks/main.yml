@@ -1,0 +1,22 @@
+---
+  
+## Initial Seed node
+
+- name: Setup Seed node
+  template:
+    src: cockroachdb.primary.unit.j2
+    dest: /etc/systemd/system/cockroachdb.service
+    owner: root
+    group: root
+    mode: 0644
+  tags: ['cockroachdb-primary']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: setup cockroachdb systemd
+  systemd: 
+    daemon_reload: yes
+    name: cockroachdb
+    state: restarted
+    enabled: yes
+  tags: ['cockroachdb-primary']
+  when: ansible_distribution == 'Ubuntu'

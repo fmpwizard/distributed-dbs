@@ -1,0 +1,8 @@
+---
+- hosts: 
+  - seed-db
+
+  become: yes
+  roles:
+    - mongodb
+    - cockroachdb-seed

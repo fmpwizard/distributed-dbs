@@ -1,0 +1,8 @@
+---
+
+#A fresh Ubuntu 10.6 erver does not have python, so we use this
+- raw: apt -y install python
+  tags: ['init']
+
+- raw: apt -y update
+  tags: ['init']

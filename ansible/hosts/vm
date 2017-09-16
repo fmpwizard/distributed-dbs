@@ -1,0 +1,12 @@
+
+[dbservers]
+node-01
+node-02
+node-03
+
+[seed-db]
+node-01
+
+[non-seed-db]
+node-02
+node-03

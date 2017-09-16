@@ -1,0 +1,9 @@
+---
+- hosts: 
+  - dbservers
+
+  become: yes
+  roles:
+    - mongodb
+    - cockroachdb
+    - couchbase

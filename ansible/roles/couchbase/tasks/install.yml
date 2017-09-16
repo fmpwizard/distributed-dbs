@@ -1,0 +1,60 @@
+---
+# Install couchbase
+
+## Ubuntu
+
+- name: Install libssl1.0.0 for couchbase
+  apt: 
+    name: libssl1.0.0
+    update_cache: yes
+    state: latest
+  tags: ['couchbase']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install Couchbase
+  apt: 
+    deb: https://packages.couchbase.com/releases/{{ couchbase_version }}/couchbase-server-community_{{ couchbase_linux_version }}.deb
+  tags: ['couchbase']
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Enable couchbase service
+  systemd:
+    name: couchbase-server
+    enabled: yes
+    state: restarted
+  tags: ['couchbase']
+  when: ansible_distribution == 'Ubuntu'
+  
+## Couchbase requires this
+
+- stat: path=/sys/kernel/mm/transparent_hugepage/enabled
+  register: transparent_hugepage_stat
+  tags: ['couchbase']
+  
+- block:
+    - name: disable kernel.mm.transparent_hugepage
+      lineinfile: dest=/etc/rc.local line="echo never > /sys/kernel/mm/transparent_hugepage/enabled" insertbefore="exit 0"
+
+    - name: inject kernel.mm.transparent_hugepage
+      shell: "echo never > /sys/kernel/mm/transparent_hugepage/enabled && touch {{ansible_env.HOME}}/.kernel.mm.transparent_hugepage.never"
+      args:
+        creates: "{{ansible_env.HOME}}/.kernel.mm.transparent_hugepage.never"
+  tags: ['couchbase']
+  when: transparent_hugepage_stat.stat.exists == true
+ 
+
+- stat: path=/sys/kernel/mm/transparent_hugepage/defrag
+  register: transparent_hugepage_stat_defrag
+  tags: ['couchbase']
+  
+- block:
+    - name: disable kernel.mm.transparent_hugepage
+      lineinfile: dest=/etc/rc.local line="echo never > /sys/kernel/mm/transparent_hugepage/defrag" insertbefore="exit 0"
+
+    - name: inject kernel.mm.transparent_hugepage
+      shell: "echo never > /sys/kernel/mm/transparent_hugepage/defrag && touch {{ansible_env.HOME}}/.kernel.mm.transparent_hugepage_defrag.never"
+      args:
+        creates: "{{ansible_env.HOME}}/.kernel.mm.transparent_hugepage_defrag.never"
+  tags: ['couchbase']
+  when: transparent_hugepage_stat_defrag.stat.exists == true
+ 

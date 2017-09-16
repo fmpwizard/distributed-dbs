@@ -1,0 +1,15 @@
+[Unit]
+Description=CockroachDB daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/cockroach start \
+--insecure \
+--advertise-host={{ hostvars[inventory_hostname]['ansible_default_ipv4'].address }} \
+--join={{ hostvars[groups['dbservers:primary'][0]]['ansible_default_ipv4'].address }}:26257
+Restart=on-failure
+RestartSec=10s
+LimitNOFILE=35000
+
+[Install]
+WantedBy=multi-user.target

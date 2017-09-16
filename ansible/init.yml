@@ -1,0 +1,14 @@
+---
+
+# ansible-playbook  init.yml -i hosts/vm  -u diego --ask-become-pass
+
+# To collect info like ip on server X to use on unit file for process Y
+#- hosts: <some other host>
+#  name: Gather facts from collectors
+#  tasks: [ ]
+
+- hosts: dbservers
+  become: yes
+  gather_facts: no
+  roles:
+    - init

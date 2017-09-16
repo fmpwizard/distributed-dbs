@@ -1,0 +1,13 @@
+---
+#To collect ip on seed server to use on unit file for non seed nodes
+- hosts: seed-db
+  name: Gather facts from collectors
+  tasks: [ ]
+
+- hosts: 
+  - non-seed-db
+
+  become: yes
+  roles:
+    - mongodb
+    - cockroachdb-non-seed
